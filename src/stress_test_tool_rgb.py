@@ -25,64 +25,8 @@ test_running = False
 log_queue = queue.Queue()
 endpoints_to_test = []
 available_endpoints = []  # Se llenará automáticamente
-datos_usuarios = [
-    {"username": "sergi", "password": "1234"},
-    {"username": "lali", "password": "1234"},
-    {"username": "adam", "password": "1234"},
-    {"username": "david", "password": "1234"},
-    {"username": "Lluis", "password": "1"},
-    {"username": "user2", "password": "password2"},
-    {"username": "user3", "password": "password3"},
-    {"username": "user4", "password": "password4"},
-    {"username": "user5", "password": "password5"},
-    {"username": "user6", "password": "password6"},
-    {"username": "user7", "password": "password7"},
-    {"username": "user8", "password": "password8"},
-    {"username": "user9", "password": "password9"},
-    {"username": "user10", "password": "password10"},
-    {"username": "user11", "password": "password11"},
-    {"username": "user12", "password": "password12"},
-    {"username": "user13", "password": "password13"},
-    {"username": "user14", "password": "password14"},
-    {"username": "user15", "password": "password15"},
-    {"username": "user16", "password": "password16"},
-    {"username": "user17", "password": "password17"},
-    {"username": "user18", "password": "password18"},
-    {"username": "user19", "password": "password19"},
-    {"username": "user20", "password": "password20"},
-    {"username": "user21", "password": "password21"},
-    {"username": "user22", "password": "password22"},
-    {"username": "user23", "password": "password23"},
-    {"username": "user24", "password": "password24"},
-    {"username": "user25", "password": "password25"},
-    {"username": "user26", "password": "password26"},
-    {"username": "user27", "password": "password27"},
-    {"username": "user28", "password": "password28"},
-    {"username": "user29", "password": "password29"},
-    {"username": "user30", "password": "password30"},
-    {"username": "user31", "password": "password31"},
-    {"username": "user32", "password": "password32"},
-    {"username": "user33", "password": "password33"},
-    {"username": "user34", "password": "password34"},
-    {"username": "user35", "password": "password35"},
-    {"username": "user36", "password": "password36"},
-    {"username": "user37", "password": "password37"},
-    {"username": "user38", "password": "password38"},
-    {"username": "user39", "password": "password39"},
-    {"username": "user40", "password": "password40"},
-    {"username": "user41", "password": "password41"},
-    {"username": "user42", "password": "password42"},
-    {"username": "user43", "password": "password43"},
-    {"username": "user44", "password": "password44"},
-    {"username": "user45", "password": "password45"},
-    {"username": "user46", "password": "password46"},
-    {"username": "user47", "password": "password47"},
-    {"username": "user48", "password": "password48"},
-    {"username": "user49", "password": "password49"},
-    {"username": "aaaaa", "password": "aaaa"},
-    {"username": "12", "password": "12"},
-    {"username": "erf4rf", "password": None}
-]
+# ip = "http://192.168.1.52:5000"
+ip = "http://192.168.1.71:5000"
 
 class APITestApp:
     def __init__(self, root):
@@ -117,7 +61,7 @@ class APITestApp:
         self.sidebar_frame.grid_rowconfigure(5, weight=1)
 
         # Logo
-        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="API Stress Test (Logins)", 
+        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="API Stress Test (RGB)", 
                                     font=ctk.CTkFont(size=20, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
 
@@ -129,9 +73,9 @@ class APITestApp:
         self.server_url_label = ctk.CTkLabel(self.params_frame, text="Server URL:")
         self.server_url_label.grid(row=0, column=0, padx=5, pady=(5, 0), sticky="w")
         self.server_url_entry = ctk.CTkEntry(self.params_frame, 
-                                        placeholder_text="http://192.168.1.52:5000",
+                                        placeholder_text=ip,
                                         width=300)  # Ancho aumentado
-        self.server_url_entry.insert(0, "http://192.168.1.52:5000")
+        self.server_url_entry.insert(0, ip)
         self.server_url_entry.grid(row=1, column=0, padx=5, pady=(0, 5), sticky="ew")
 
         # Botón "Discover Endpoints"
@@ -248,31 +192,45 @@ class APITestApp:
 
         self.log_message("\n🚀 Starting comprehensive endpoint discovery...")
 
-        # Configuración completa de endpoints
+        # Configuración completa de endpoints (actualizada)
+        random_ip = f"192.168.1.{random.randint(1, 255)}"
+        random_channel = random.randint(1, 5)
+        random_r = random.randint(0, 255)
+        random_g = random.randint(0, 255)
+        random_b = random.randint(0, 255)
+        random_blink = random.choice([True, False])
+        random_timing = random.randint(0, 10)
+
+        # Diccionario con datos aleatorios
         endpoints_config = {
-            # FromForm endpoints (traditional form data)
-            "FROM_FORM": {
-                "/Auth/Login2": {
-                    "data": {
-                        "username": "adam",
-                        "password": "1234"
-                            },
+            # FromBody endpoints (JSON)
+            "FROM_BODY": {
+                "/ConsoleDevice/ChangeLightRGB": {
+                    "params": {  # Parámetros en la query
+                        "ip": "192.168.1.214"  
                     },
-                },
+                    "data": {    # Body JSON
+                        "channel": 1,
+                        "r": 255,
+                        "g": 255,
+                        "b": 255,
+                        "blink": True,
+                        "timing": 0
+                    }
+                }
             }
+        }
         
         discovered_endpoints = []
-        session = requests.Session()  # Reutilizamos la sesión HTTP
+        session = requests.Session()
 
-        # Función interna para probar endpoints
+        # Función interna para probar endpoints (modificada)
         def test_endpoint(endpoint_type, endpoint, config):
             nonlocal discovered_endpoints
             try:
-                # Construcción de la URL
+                # Construcción de la URL con parámetros (para cualquier tipo)
                 url = urljoin(base_url, endpoint)
-                
-                # Manejo de parámetros query para endpoints FromForm
-                if endpoint_type == "FROM_FORM" and "params" in config:
+                if "params" in config:  # Nuevo: maneja params para todos los tipos
                     url += "?" + "&".join([f"{k}={v}" for k, v in config["params"].items()])
 
                 self.log_message(f"\n🔍 Testing {endpoint_type} POST {endpoint}")
@@ -291,6 +249,7 @@ class APITestApp:
                     response = session.post(
                         url,
                         json=config["data"],
+                        headers={'Content-Type': 'application/json'},
                         timeout=10
                     )
 
@@ -341,12 +300,25 @@ class APITestApp:
 
         if available_endpoints:
             self.update_endpoint_checkboxes()
-            self.log_message(f"\n🎉 {success_msg}")
-            messagebox.showinfo("Success", success_msg)
+            self.log_message(f"\n🎉 Discovery completed! Found {len(available_endpoints)} valid endpoints")
+            messagebox.showinfo("Success", f"Discovered {len(available_endpoints)} endpoints!")
         else:
             self.log_message("\n❌ No endpoints responded successfully")
             messagebox.showwarning("Warning", "No endpoints could be discovered")
-    
+
+    def generate_dynamic_data(self, template):
+        data = {}
+        for key, spec in template.items():
+            if isinstance(spec, str) and spec.startswith("int"):
+                # Extraer rango (ej: "int(0-255)")
+                parts = spec[4:-1].split('-')
+                data[key] = random.randint(int(parts[0]), int(parts[1]))
+            elif spec == "bool":
+                data[key] = random.choice([True, False])
+            else:
+                data[key] = spec  # Si ya es un valor fijo, lo copia tal cual
+        return data
+
     def update_endpoint_checkboxes(self):
         """Update the checkboxes with discovered endpoints"""
         # Clear existing checkboxes
@@ -390,65 +362,40 @@ class APITestApp:
         self.root.after(100, self.update_logs)
     
     def send_request(self, session, endpoint_info):
-        """Send a POST request with proper formatting based on endpoint type"""
-        base_url = self.server_url_entry.get().strip() or "http://192.168.1.52:5000"
+        """Send a POST request for the RGB light endpoint"""
+        base_url = self.server_url_entry.get().strip() or ip
         endpoint = endpoint_info['endpoint']
         url = urljoin(base_url, endpoint)
 
-        # Métricas
+        # Añadir parámetro IP a la URL
+        if 'params' in endpoint_info['config']:
+            url += "?" + "&".join(
+                f"{k}={v}" for k, v in endpoint_info['config']['params'].items()
+            )
+
+        # Métricas y variables
         start_time = time.time()
         status = "Error"
         elapsed = None
 
-        global datos_usuarios
-
         try:
-            # Preparar la petición según el tipo de endpoint
-            if endpoint_info['type'] == 'form':
-                if 'params' in endpoint_info['config']:
-                    url += "?" + "&".join(
-                        f"{k}={v}" for k, v in endpoint_info['config']['params'].items()
-                    )
-                data_to_send = endpoint_info['config']['data']
-                headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-            else:  # JSON endpoints
-                # Modificación para endpoint de login con workplace random
-                if endpoint == "/Auth/Login2":
-                    # Añadir parámetro seed para que el backend elija un workplace aleatorio
-                    seed = random.randint(1, 51)
-                    url += f"?seed={seed}"
+            # Generar IP y datos dinámicos
+            random_ip = f"192.168.1.{random.randint(1, 254)}"
+            data_to_send = self.generate_dynamic_data(endpoint_info['config']['data'])
+            
+            # Construir URL con IP dinámica
+            url = urljoin(base_url, endpoint)
+            url += f"?ip={random_ip}"
 
-                    # Seleccionar usuario aleatorio con contraseña válida
-                    valid_users = [u for u in datos_usuarios if u.get("password")]
-                    if not valid_users:
-                        self.log_message("❌ No hay credenciales válidas para probar")
-                        return "Error", None
-
-                    user = random.choice(valid_users)
-                    data_to_send = {
-                        "username": user["username"],
-                        "password": user["password"]
-                    }
-                    headers = {'Content-Type': 'application/json'}
-                else:
-                    data_to_send = endpoint_info['config']['data']
-                    headers = {'Content-Type': 'application/json'}
+            headers = {'Content-Type': 'application/json'}
 
             # Envío de la petición
-            if endpoint_info['type'] == 'form':
-                response = session.post(
-                    url,
-                    data=data_to_send,
-                    headers=headers,
-                    timeout=10
-                )
-            else:
-                response = session.post(
-                    url,
-                    json=data_to_send,
-                    headers=headers,
-                    timeout=10
-                )
+            response = session.post(
+                url,
+                json=data_to_send,
+                headers=headers,
+                timeout=10
+            )
 
             elapsed = time.time() - start_time
             status = response.status_code
@@ -460,18 +407,22 @@ class APITestApp:
 
             # Log detallado
             log_msg = [
-                f"Request to {endpoint}",
-                f"Type: {endpoint_info['type'].upper()}",
-                f"Status: {status}",
-                f"Time: {elapsed:.3f}s"
+                f"🔦 RGB Light Request to {endpoint}",
+                f"URL: {url}",
+                f"Color Data:",
+                f"• Channel: {data_to_send.get('channel', 'N/A')}",
+                f"• R: {data_to_send.get('r', 'N/A')}",
+                f"• G: {data_to_send.get('g', 'N/A')}",
+                f"• B: {data_to_send.get('b', 'N/A')}",
+                f"• Blink: {data_to_send.get('blink', 'N/A')}",
+                f"• Timing: {data_to_send.get('timing', 'N/A')}",
+                # ... resto del log
             ]
-            if endpoint == "/Auth/Login2":
-                log_msg.append(f"Credentials used: {data_to_send['username']} | seed={seed}")
 
             try:
                 response_data = response.json()
                 log_msg.append(f"Response: {json.dumps(response_data, indent=2)}")
-            except Exception:
+            except:
                 log_msg.append(f"Response: {response.text}")
 
             self.log_message("\n".join(log_msg))
