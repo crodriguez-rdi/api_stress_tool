@@ -61,7 +61,7 @@ class APITestApp:
         self.sidebar_frame.grid_rowconfigure(5, weight=1)
 
         # Logo
-        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="API Stress Test (RGB)", 
+        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="API Stress Test (Mono)", 
                                     font=ctk.CTkFont(size=20, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
 
@@ -203,24 +203,18 @@ class APITestApp:
 
         # Diccionario con datos aleatorios
         endpoints_config = {
-            # FromBody endpoints (JSON)
-            "FROM_BODY": {
-                "/ConsoleDevice/ChangeLightRGB": {
-                    "params": {  # Parámetros en la query
-                        "ip": "192.168.1.210"  
+            "FROM_FORM": {
+                "/ConsoleDevice/ChangeLightMono": {
+                    "params": {
+                        "intensity": "100",
+                        "led": "255",
+                        "ip": "192.168.1.214"                        
                     },
-                    "data": {    # Body JSON
-                        "channel": 1,
-                        "r": 255,
-                        "g": 255,
-                        "b": 255,
-                        "blink": True,
-                        "timing": 0
-                    }
+                    "data": {}
                 }
             }
         }
-        
+
         discovered_endpoints = []
         session = requests.Session()
 
@@ -362,40 +356,57 @@ class APITestApp:
         self.root.after(100, self.update_logs)
     
     def send_request(self, session, endpoint_info):
-        """Send a POST request for the RGB light endpoint"""
+        """Send a POST request with proper formatting based on endpoint type"""
         base_url = self.server_url_entry.get().strip() or ip
         endpoint = endpoint_info['endpoint']
         url = urljoin(base_url, endpoint)
 
-        # Añadir parámetro IP a la URL
-        if 'params' in endpoint_info['config']:
-            url += "?" + "&".join(
-                f"{k}={v}" for k, v in endpoint_info['config']['params'].items()
-            )
-
-        # Métricas y variables
+        # Métricas
         start_time = time.time()
         status = "Error"
         elapsed = None
+        dynamic_params = {}
 
         try:
-            # Generar IP y datos dinámicos
-            random_ip = f"192.168.1.{random.randint(1, 254)}"
-            data_to_send = self.generate_dynamic_data(endpoint_info['config']['data'])
-            
-            # Construir URL con IP dinámica
-            url = urljoin(base_url, endpoint)
-            url += f"?ip={random_ip}"
+            # Preparar la petición según el tipo de endpoint
+            if endpoint_info['type'] == 'form':
+                # 1. Generar parámetros dinámicos para FORM
+                dynamic_params = endpoint_info['config']['params'].copy()
+                dynamic_params['ip'] = f"192.168.1.{random.randint(1, 254)}"
+                
+                # 2. Construir URL con parámetros
+                url += "?" + "&".join(f"{k}={v}" for k, v in dynamic_params.items())
+                
+                # 3. Configurar headers y datos
+                headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+                data_to_send = endpoint_info['config']['data']
 
-            headers = {'Content-Type': 'application/json'}
+            else:  # JSON endpoints
+                # 1. Generar parámetros dinámicos si existen
+                if 'params' in endpoint_info['config']:
+                    dynamic_params = endpoint_info['config']['params'].copy()
+                    dynamic_params['ip'] = f"192.168.1.{random.randint(1, 254)}"
+                    url += "?" + "&".join(f"{k}={v}" for k, v in dynamic_params.items())
+                
+                # 2. Generar datos body dinámicos
+                data_to_send = self.generate_dynamic_data(endpoint_info['config']['data_template'])
+                headers = {'Content-Type': 'application/json'}
 
             # Envío de la petición
-            response = session.post(
-                url,
-                json=data_to_send,
-                headers=headers,
-                timeout=10
-            )
+            if endpoint_info['type'] == 'form':
+                response = session.post(
+                    url,
+                    data=data_to_send,
+                    headers=headers,
+                    timeout=10
+                )
+            else:
+                response = session.post(
+                    url,
+                    json=data_to_send,
+                    headers=headers,
+                    timeout=10
+                )
 
             elapsed = time.time() - start_time
             status = response.status_code
@@ -407,17 +418,26 @@ class APITestApp:
 
             # Log detallado
             log_msg = [
-                f"🔦 RGB Light Request to {endpoint}",
+                f"🔌 Request to {endpoint}",
+                f"Type: {endpoint_info['type'].upper()}",
                 f"URL: {url}",
-                f"Color Data:",
-                f"• Channel: {data_to_send.get('channel', 'N/A')}",
-                f"• R: {data_to_send.get('r', 'N/A')}",
-                f"• G: {data_to_send.get('g', 'N/A')}",
-                f"• B: {data_to_send.get('b', 'N/A')}",
-                f"• Blink: {data_to_send.get('blink', 'N/A')}",
-                f"• Timing: {data_to_send.get('timing', 'N/A')}",
-                # ... resto del log
+                f"Status: {status}",
+                f"Response Time: {elapsed:.3f}s"
             ]
+
+            # Detalles específicos por tipo
+            if endpoint_info['type'] == 'form':
+                log_msg.append(f"Query Params: {dynamic_params}")
+            else:
+                log_msg.extend([
+                    f"Body Data:",
+                    f"• Channel: {data_to_send.get('channel', 'N/A')}",
+                    f"• R: {data_to_send.get('r', 'N/A')}",
+                    f"• G: {data_to_send.get('g', 'N/A')}",
+                    f"• B: {data_to_send.get('b', 'N/A')}",
+                    f"• Blink: {data_to_send.get('blink', 'N/A')}",
+                    f"• Timing: {data_to_send.get('timing', 'N/A')}"
+                ])
 
             try:
                 response_data = response.json()
