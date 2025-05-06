@@ -50,7 +50,8 @@ class APITestApp:
         # Inicia la actualización periódica de logs y gráficos.
         self.update_logs()
         self.update_graph_periodically()
-
+    
+    # Método para crear todos los widgets de la interfaz gráfica
     def create_widgets(self):
         """Crea todos los widgets de la interfaz gráfica"""
 
@@ -183,6 +184,7 @@ class APITestApp:
                                     font=ctk.CTkFont(size=10))
         self.status_bar.grid(row=3, column=1, columnspan=2, padx=10, pady=(0, 10), sticky="ew")
     
+    # Método para actualizar el gráfico periódicamente
     def discover_endpoints(self):
         """Descubre endpoints de la API detectando automáticamente los tipos FromForm y FromBody"""
 
@@ -318,6 +320,7 @@ class APITestApp:
             self.log_message("\n❌ No endpoints responded successfully")
             messagebox.showwarning("Warning", "No endpoints could be discovered")
 
+    # Método para generar datos dinámicos según una plantilla dada
     def generate_dynamic_data(self, template):
         data = {}  # Diccionario donde se almacenarán los datos generados dinámicamente
 
@@ -338,6 +341,7 @@ class APITestApp:
 
         return data  # Devuelve el diccionario con los datos generados
 
+    # Método para actualizar los checkboxes de endpoints en la interfaz gráfica
     def update_endpoint_checkboxes(self):
         """Actualiza los checkboxes con los endpoints descubiertos"""
 
@@ -357,18 +361,21 @@ class APITestApp:
             # Añade el checkbox a la lista para poder acceder a ellos después
             self.endpoint_checkboxes.append(checkbox)
     
+    # Método para seleccionar todos los endpoints disponibles
     def select_all_endpoints(self):
         # Recorre todos los checkboxes de endpoints disponibles
         for checkbox in self.endpoint_checkboxes:
             # Marca (selecciona) cada checkbox
             checkbox.select()
     
+    # Método para deseleccionar todos los endpoints disponibles
     def deselect_all_endpoints(self):
         # Recorre todos los checkboxes de endpoints disponibles
         for checkbox in self.endpoint_checkboxes:
             # Desmarca (deselecciona) cada checkbox
             checkbox.deselect()
     
+    # Método para obtener los endpoints seleccionados por el usuario
     def get_selected_endpoints(self):
         selected = []  # Lista para almacenar los endpoints seleccionados
 
@@ -380,10 +387,12 @@ class APITestApp:
                 selected.append(available_endpoints[i])
         return selected  # Devuelve la lista de endpoints seleccionados
     
+    # Método para actualizar el área de logs en la interfaz gráfica
     def log_message(self, message):
         # Envía el mensaje recibido a la cola de logs para que sea procesado y mostrado en la interfaz.
         log_queue.put(message)
-        
+    
+    # Método para actualizar el área de logs periódicamente    
     def update_logs(self):
         try:
             while True:
@@ -403,6 +412,7 @@ class APITestApp:
         # Programa la siguiente actualización de logs dentro de 100 ms (actualización periódica)
         self.root.after(100, self.update_logs)
 
+    # Método para actualizar el gráfico de tiempos de respuesta periódicamente
     def send_request(self, session, endpoint_info):
         """Envía una petición POST al endpoint de la luz RGB"""
 
@@ -487,6 +497,7 @@ class APITestApp:
             self.log_message(f"❌ Error making request to {endpoint}: {str(e)}")
             return "Error", None
 
+    # Método para simular el comportamiento de un usuario enviando peticiones a la API
     def user_simulation(self, user_id):
         """Simula el comportamiento de un usuario generando solicitudes a la API"""
         
@@ -513,7 +524,8 @@ class APITestApp:
             delay_min = float(self.delay_min_entry.get())
             delay_max = float(self.delay_max_entry.get())
             time.sleep(random.uniform(delay_min, delay_max))
- 
+    
+    # Método para iniciar el test de estrés
     def start_test(self):
         # Accede a las variables globales para control del test y métricas
         global test_running, response_times, status_codes, errors
@@ -585,6 +597,7 @@ class APITestApp:
         # Actualiza la barra de estado
         self.status_bar.configure(text="Test en curso...")
     
+    # Método para detener el test de estrés
     def stop_test(self):
         global test_running  # Accede a la variable global que controla el estado del test
 
@@ -617,6 +630,7 @@ class APITestApp:
         self.log_message("\n=== Test detenido ===")          # Mensaje en el log
         self.status_bar.configure(text="Test detenido")      # Actualiza barra de estado
     
+    # Método para registrar el estado del test de estrés periódicamente
     def log_status(self, interval):
         """Registra periódicamente el estado del test de estrés"""
         while test_running:  # Se ejecuta mientras el test esté activo
@@ -644,6 +658,7 @@ class APITestApp:
                 )
                 self.log_message(status_message)  # Envía el reporte al área de logs
     
+    # Método para actualizar el gráfico de tiempos de respuesta
     def update_graph(self):
         # Si hay tiempos de respuesta registrados, actualiza el gráfico
         if response_times:
@@ -671,6 +686,7 @@ class APITestApp:
             # Redibuja el gráfico actualizado en la interfaz
             self.canvas.draw()
     
+    # Método para actualizar el gráfico periódicamente
     def update_graph_periodically(self):
         # Actualiza el gráfico con los últimos datos disponibles
         self.update_graph()
@@ -678,6 +694,7 @@ class APITestApp:
         # Programa la próxima actualización del gráfico después de 1000 ms (1 segundo)
         self.root.after(1000, self.update_graph_periodically)
     
+    # Método para cerrar la aplicación y liberar recursos
     def on_closing(self):
         global test_running  # Accede a la variable global de control del test
         
@@ -703,6 +720,7 @@ class APITestApp:
         import os
         os._exit(0)  # Finaliza el proceso inmediatamente
 
+    # Método para iniciar la actualización periódica del gráfico
     def update_graph_periodically(self):
         # Programa la próxima ejecución de esta función después de 1000 ms (1 segundo)
         # y guarda la referencia del trabajo programado para poder cancelarlo luego
@@ -711,6 +729,7 @@ class APITestApp:
         # Actualiza el gráfico con los datos más recientes
         self.update_graph()
 
+    # Método para actualizar los logs periódicamente
     def update_logs(self):
         try:
             while True:
